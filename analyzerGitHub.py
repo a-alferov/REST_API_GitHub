@@ -1,6 +1,6 @@
 import argparse
 import re
-from urllib import request, parse
+from urllib import request, parse, error
 import json
 from datetime import datetime
 from collections import defaultdict
@@ -8,9 +8,6 @@ from collections import defaultdict
 
 def get_response_pagination(url):
     response = request.urlopen(url)
-    # requests = request.Request(url)
-    # requests.add_header('Authorization', 'token TOKEN')
-    # response = request.urlopen(requests)
     data_bytes = response.read()
     json_data = data_bytes.decode('utf-8')
     data = json.loads(json_data)
@@ -189,8 +186,15 @@ if __name__ == '__main__':
     since = args.since
     until = args.until
     branch = args.branch
-    print_commit_counts(owner, repo, since, until, branch)
-    print_number_pull_request(owner, repo, since, until, branch)
-    print_number_of_old_pull_request(owner, repo, since, until, branch)
-    print_number_issues(owner, repo, since, until)
-    print_number_of_old_issues(owner, repo, since, until)
+    try:
+        print_commit_counts(owner, repo, since, until, branch)
+        print_number_pull_request(owner, repo, since, until, branch)
+        print_number_of_old_pull_request(owner, repo, since, until, branch)
+        print_number_issues(owner, repo, since, until)
+        print_number_of_old_issues(owner, repo, since, until)
+    except error.HTTPError:
+        print("API rate limit exceeded. "
+              "(But here's the good news: Authenticated requests get a higher rate limit."
+              " Check out the documentation for more details.)")
+    except ValueError:
+        print("Bad format a timestamp. Use the flag -h or --help when starting the script.")
